@@ -129,3 +129,6 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# 开发环境邮件设置 (控制台输出)
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
