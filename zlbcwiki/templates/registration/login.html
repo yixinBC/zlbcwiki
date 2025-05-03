@@ -1,9 +1,30 @@
-<h2>登录</h2>
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">登录</button>
-</form>
-<p><a href="{% url 'register' %}">还没有账户？点击注册</a></p>
-{# 你也可以添加密码重置链接 #}
-{# <p><a href="{% url 'password_reset' %}">忘记密码?</a></p> #}
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}登录 - ZLBC Wiki{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white text-center">
+                    <h2 class="my-2">登录</h2>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post">
+                        {% csrf_token %}
+                        {{ form|crispy }}
+                        <button type="submit" class="btn btn-primary w-100 mt-3">登录</button>
+                    </form>
+                    <hr class="my-4">
+                    <div class="text-center">
+                        <p><a href="{% url 'register' %}">还没有账户？点击注册</a></p>
+                        <p><a href="{% url 'password_reset' %}">忘记密码?</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
