@@ -55,7 +55,7 @@ ROOT_URLCONF = "zlbcwiki.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [BASE_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -99,6 +99,8 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+LOGIN_REDIRECT_URL = "/"  # 登录后重定向到首页 (URL 名称为 'index' 或 '/')
+LOGOUT_REDIRECT_URL = "/"  # 登出后重定向到首页
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/

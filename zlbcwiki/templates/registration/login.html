@@ -1,0 +1,9 @@
+<h2>登录</h2>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">登录</button>
+</form>
+<p><a href="{% url 'register' %}">还没有账户？点击注册</a></p>
+{# 你也可以添加密码重置链接 #}
+{# <p><a href="{% url 'password_reset' %}">忘记密码?</a></p> #}
