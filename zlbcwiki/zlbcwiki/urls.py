@@ -27,6 +27,8 @@ urlpatterns = [
     path("accounts/", include("django.contrib.auth.urls")),
     path("accounts/register/", wiki_views.register, name="register"),
     path("", wiki_views.index, name="index"),
+    path("wiki/upload_image/", wiki_views.upload_wiki_image, name="upload_wiki_image"),
+    path("wiki/<int:wiki_id>/edit/", wiki_views.edit_wiki, name="edit_wiki"),
 ]
 
 if settings.DEBUG:

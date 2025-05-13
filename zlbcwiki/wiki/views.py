@@ -1,10 +1,10 @@
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
-from .models import Wiki
+from .models import Wiki, WikiImage
 # Create your views here.
 
 
@@ -44,6 +44,30 @@ def edit_wiki(request, wiki_id):
         return redirect("wiki_detail", wiki_id=wiki.id)
 
     return render(request, "wiki/edit.html", {"wiki": wiki})
+
+
+@login_required
+def upload_wiki_image(request):
+    if request.method == "POST" and request.FILES.get("image"):
+        wiki_id = request.POST.get("wiki_id")
+        wiki = get_object_or_404(Wiki, id=wiki_id)
+
+        # 创建新图片记录
+        image = WikiImage(
+            title=request.POST.get("title", ""),
+            description=request.POST.get("description", ""),
+            wiki=wiki,
+            uploaded_by=request.user,
+            image=request.FILES["image"],
+        )
+        image.save()
+
+        # 返回成功响应和图片URL
+        return JsonResponse(
+            {"success": True, "image_url": image.image.url, "title": image.title}
+        )
+
+    return JsonResponse({"success": False, "error": "上传失败"})
 
 
 def view_wiki_history(request, wiki_id):
