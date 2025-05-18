@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+{% load django_bootstrap5 %}
+
+{% block title %}{% if is_create %}创建新页面{% else %}编辑 {{ wiki.title }}{% endif %} - ZLBC Wiki{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="display-6">{% if is_create %}创建新Wiki页面{% else %}编辑 {{ wiki.title }}{% endif %}</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'index' %}">首页</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'wiki_list' %}">Wiki</a></li>
+                    {% if not is_create %}
+                    <li class="breadcrumb-item"><a href="{% url 'wiki_detail' slug=wiki.slug %}">{{ wiki.title }}</a>
+                    </li>
+                    {% endif %}
+                    <li class="breadcrumb-item active">{% if is_create %}创建新页面{% else %}编辑{% endif %}</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-9">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">{% if is_create %}新页面信息{% else %}编辑页面{% endif %}</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        {{ form|crispy }}
+
+                        {% if not is_create %}
+                        <div class="mb-3">
+                            <label for="description" class="form-label">修改说明</label>
+                            <textarea id="description" name="description" class="form-control" rows="2"
+                                placeholder="简要说明此次修改的内容（可选）"></textarea>
+                        </div>
+                        {% endif %}
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{% if is_create %}{% url 'wiki_list' %}{% else %}{% url 'wiki_detail' slug=wiki.slug %}{% endif %}"
+                                class="btn btn-secondary">取消</a>
+                            <button type="submit" class="btn btn-primary">保存</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="card-title mb-0">编辑帮助</h5>
+                </div>
+                <div class="card-body">
+                    <h6>Markdown 语法：</h6>
+                    <ul class="small">
+                        <li><code># 标题</code> - 一级标题</li>
+                        <li><code>## 标题</code> - 二级标题</li>
+                        <li><code>**粗体**</code> - <strong>粗体</strong></li>
+                        <li><code>*斜体*</code> - <em>斜体</em></li>
+                        <li><code>[链接文本](URL)</code> - 链接</li>
+                        <li><code>![替代文本](图片URL)</code> - 图片</li>
+                        <li><code>- 列表项</code> - 无序列表</li>
+                        <li><code>1. 列表项</code> - 有序列表</li>
+                        <li><code>```代码块```</code> - 代码块</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

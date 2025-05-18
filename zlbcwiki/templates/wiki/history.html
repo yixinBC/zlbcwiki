@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+
+{% block title %}{{ wiki.title }} - 历史版本 - ZLBC Wiki{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="display-6">{{ wiki.title }} <small class="text-muted">历史版本</small></h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'index' %}">首页</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'wiki:detail' slug=wiki.slug %}">{{ wiki.title }}</a>
+                    </li>
+                    <li class="breadcrumb-item active">历史版本</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-9">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">版本历史记录</h5>
+                    <a href="{% url 'edit_wiki' wiki_id=wiki.id %}" class="btn btn-primary btn-sm">
+                        <i class="bi bi-pencil"></i> 编辑当前版本
+                    </a>
+                </div>
+                <div class="card-body p-0">
+                    {% if revisions %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th scope="col">版本</th>
+                                    <th scope="col">修改时间</th>
+                                    <th scope="col">修改人</th>
+                                    <th scope="col">修改说明</th>
+                                    <th scope="col">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for revision in revisions %}
+                                <tr>
+                                    <td>#{{ revision.id }}</td>
+                                    <td>{{ revision.created_at|date:"Y-m-d H:i:s" }}</td>
+                                    <td>
+                                        {% if revision.user %}
+                                        {{ revision.user.username }}
+                                        {% else %}
+                                        <span class="text-muted">未知用户</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if revision.description %}
+                                        {{ revision.description|truncatechars:50 }}
+                                        {% else %}
+                                        <span class="text-muted">无说明</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{% url 'wiki_revision' wiki_id=wiki.id revision_id=revision.id %}"
+                                                class="btn btn-outline-secondary">
+                                                查看
+                                            </a>
+                                            {% if user.is_authenticated %}
+                                            <a href="{% url 'edit_wiki' wiki_id=wiki.id %}?restore={{ revision.id }}"
+                                                class="btn btn-outline-primary">
+                                                还原
+                                            </a>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info m-3">
+                        <p class="mb-0">此页面暂无修订历史记录。</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if revisions.count > 10 %}
+            <div class="my-3">
+                <nav aria-label="历史版本分页">
+                    <ul class="pagination justify-content-center">
+                        {% if revisions.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1">&laquo; 首页</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ revisions.previous_page_number }}">上一页</a>
+                        </li>
+                        {% endif %}
+
+                        <li class="page-item disabled">
+                            <span class="page-link">
+                                第 {{ revisions.number }} 页 / 共 {{ revisions.paginator.num_pages }} 页
+                            </span>
+                        </li>
+
+                        {% if revisions.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ revisions.next_page_number }}">下一页</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ revisions.paginator.num_pages }}">末页 &raquo;</a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="card-title mb-0">版本对比</h5>
+                </div>
+                <div class="card-body">
+                    <form action="{% url 'wiki_compare' wiki_id=wiki.id %}" method="get" class="mb-3">
+                        <div class="mb-3">
+                            <label for="from_revision" class="form-label">从版本:</label>
+                            <select name="from_revision" id="from_revision" class="form-select form-select-sm">
+                                {% for rev in revisions %}
+                                <option value="{{ rev.id }}">版本 #{{ rev.id }} ({{ rev.created_at|date:"m-d H:i" }})
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="to_revision" class="form-label">至版本:</label>
+                            <select name="to_revision" id="to_revision" class="form-select form-select-sm">
+                                {% for rev in revisions %}
+                                <option value="{{ rev.id }}" {% if forloop.first %}selected{% endif %}>版本 #{{ rev.id }}
+                                    ({{ rev.created_at|date:"m-d H:i" }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-sm w-100">对比版本</button>
+                    </form>
+                    <div class="alert alert-info small">
+                        <p class="mb-0">
+                            <i class="bi bi-info-circle"></i> 版本对比可以帮助您查看不同时间点的内容差异。
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Bootstrap Icons -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+<script>
+    // 确保"从版本"选择比"至版本"早
+    document.getElementById('from_revision').addEventListener('change', function () {
+        const fromVal = parseInt(this.value);
+        const toSelect = document.getElementById('to_revision');
+        const toVal = parseInt(toSelect.value);
+
+        if (fromVal >= toVal) {
+            // 找到一个更晚的版本
+            for (let i = 0; i < toSelect.options.length; i++) {
+                if (parseInt(toSelect.options[i].value) > fromVal) {
+                    toSelect.selectedIndex = i;
+                    break;
+                }
+            }
+        }
+    });
+
+    // 确保"至版本"选择比"从版本"晚
+    document.getElementById('to_revision').addEventListener('change', function () {
+        const toVal = parseInt(this.value);
+        const fromSelect = document.getElementById('from_revision');
+        const fromVal = parseInt(fromSelect.value);
+
+        if (toVal <= fromVal) {
+            // 找到一个更早的版本
+            for (let i = fromSelect.options.length - 1; i >= 0; i--) {
+                if (parseInt(fromSelect.options[i].value) < toVal) {
+                    fromSelect.selectedIndex = i;
+                    break;
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

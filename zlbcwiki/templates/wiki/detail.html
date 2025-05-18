@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+{% load django_bootstrap5 %}
+
+{% block title %}{{ wiki.title }} - ZLBC Wiki{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="display-6">{{ wiki.title }}</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'index' %}">首页</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'wiki_list' %}">Wiki</a></li>
+                    {% if wiki.category %}
+                    <li class="breadcrumb-item"><a href="{% url 'wiki_list' %}?category={{ wiki.category.slug }}">{{
+                            wiki.category.name }}</a></li>
+                    {% endif %}
+                    <li class="breadcrumb-item active">{{ wiki.title }}</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-9">
+            <!-- 页面内容 -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <div>
+                        {% if wiki.category %}
+                        <a href="{% url 'wiki_list' %}?category={{ wiki.category.slug }}"
+                            class="badge bg-primary text-decoration-none me-1">
+                            {{ wiki.category.name }}
+                        </a>
+                        {% endif %}
+                        {% for tag in wiki.tags.all %}
+                        <a href="{% url 'wiki_list' %}?tag={{ tag.slug }}"
+                            class="badge bg-secondary text-decoration-none me-1">
+                            {{ tag.name }}
+                        </a>
+                        {% endfor %}
+                    </div>
+                    <div class="btn-group btn-group-sm">
+                        <a href="{% url 'wiki_history' wiki_id=wiki.id %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-clock-history"></i> 历史版本
+                        </a>
+                        {% if has_edit_permission %}
+                        <a href="{% url 'edit_wiki' wiki_id=wiki.id %}" class="btn btn-outline-primary">
+                            <i class="bi bi-pencil"></i> 编辑
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- 页面元数据 -->
+                    <div class="d-flex justify-content-between text-muted small mb-3">
+                        <div>
+                            <i class="bi bi-person"></i>
+                            {% if wiki.creator %}
+                            {{ wiki.creator.username }}
+                            {% else %}
+                            匿名用户
+                            {% endif %}
+                        </div>
+                        <div>
+                            <i class="bi bi-calendar"></i> 更新于 {{ wiki.updated_at|date:"Y年m月d日 H:i" }}
+                        </div>
+                    </div>
+
+                    <!-- Markdown 渲染的内容 -->
+                    <div class="markdown-body mt-4">
+                        {{ content_html|safe }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- 评论区域 -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">评论</h5>
+                </div>
+                <div class="card-body">
+                    {% if user.is_authenticated %}
+                    <form action="{% url 'add_comment' wiki_id=wiki.id %}" method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <textarea name="content" class="form-control" rows="3" placeholder="添加评论..."></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">提交评论</button>
+                    </form>
+                    {% else %}
+                    <p>请 <a href="{% url 'login' %}">登录</a> 后发表评论</p>
+                    {% endif %}
+
+                    <hr>
+
+                    <!-- 评论列表 -->
+                    {% if wiki.comments.exists %}
+                    <div class="comments mt-4">
+                        {% for comment in wiki.comments.all %}
+                        <div class="comment mb-3 pb-3 border-bottom">
+                            <div class="d-flex justify-content-between">
+                                <div class="fw-bold">
+                                    {{ comment.user.username }}
+                                </div>
+                                <div class="text-muted small">
+                                    {{ comment.created_at|date:"Y年m月d日 H:i" }}
+                                </div>
+                            </div>
+                            <div class="mt-2">
+                                {{ comment.content|linebreaks }}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-muted">暂无评论</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <!-- 页面信息 -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="card-title mb-0">页面信息</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <i class="bi bi-calendar-check"></i> 创建于: {{ wiki.created_at|date:"Y年m月d日" }}
+                        </li>
+                        <li class="mb-2">
+                            <i class="bi bi-calendar-plus"></i> 更新于: {{ wiki.updated_at|date:"Y年m月d日 H:i" }}
+                        </li>
+                        <li>
+                            <i class="bi bi-chat-left-text"></i> 评论数: {{ wiki.comments.count }}
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 相关页面 -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="card-title mb-0">相关页面</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        {% for related in related_wikis %}
+                        <a href="{% url 'wiki_detail' slug=related.slug %}"
+                            class="list-group-item list-group-item-action">
+                            {{ related.title }}
+                        </a>
+                        {% empty %}
+                        <div class="list-group-item">没有相关页面</div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Bootstrap Icons -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+<!-- Markdown 样式 -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@5.1.0/github-markdown.min.css">
+
+<style>
+    .markdown-body {
+        padding: 20px;
+        background-color: #fff;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    }
+
+    .markdown-body img {
+        max-width: 100%;
+        height: auto;
+    }
+
+    .markdown-body h1,
+    .markdown-body h2 {
+        padding-bottom: 0.3em;
+        border-bottom: 1px solid #eaecef;
+    }
+
+    .markdown-body pre {
+        background-color: #f6f8fa;
+        border-radius: 3px;
+        padding: 16px;
+    }
+
+    .markdown-body code {
+        padding: 0.2em 0.4em;
+        background-color: rgba(27, 31, 35, 0.05);
+        border-radius: 3px;
+    }
+
+    .markdown-body pre code {
+        background-color: transparent;
+        padding: 0;
+    }
+</style>
+{% endblock %}
