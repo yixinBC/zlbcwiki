@@ -24,7 +24,8 @@ uv sync
 4.运行项目
 
 ```bash
-cd zlbcwiki
-# 确保在虚拟环境下
-python manage.py runserver
+# 初始化数据库
+uv run manage.py migrate
+# 启动 Wiki 服务
+uv run manage.py runserver
 ```

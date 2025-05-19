@@ -28,9 +28,8 @@ urlpatterns = [
     path("accounts/register/", wiki_views.register, name="register"),
     path("", wiki_views.index, name="index"),
     path("wiki/", wiki_views.wiki_list, name="wiki_list"),
-    path("wiki/<slug:slug>/", wiki_views.wiki_detail, name="wiki_detail"),
-    path("wiki/upload_image/", wiki_views.upload_wiki_image, name="upload_wiki_image"),
     path("wiki/create/", wiki_views.create_wiki, name="create_wiki"),
+    path("wiki/<slug:slug>/", wiki_views.wiki_detail, name="wiki_detail"),
     path("wiki/<int:wiki_id>/comment/", wiki_views.add_comment, name="add_comment"),
     path("wiki/<int:wiki_id>/edit/", wiki_views.edit_wiki, name="edit_wiki"),
     path(
