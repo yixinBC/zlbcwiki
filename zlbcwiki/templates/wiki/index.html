@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block title %}ZLBC Wiki - 知识共享平台{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <!-- 欢迎区域 -->
+    <div class="jumbotron bg-light p-5 rounded">
+        <h1 class="display-4">欢迎来到 ZLBC Wiki</h1>
+        <p class="lead">一个协作式知识管理与分享平台，方便团队成员记录、查阅和共享知识。</p>
+        
+        <!-- 搜索框 -->
+        <div class="mt-4">
+            <form action="{% url 'wiki_list' %}" method="get" class="d-flex">
+                <input type="text" name="q" class="form-control form-control-lg me-2" 
+                       placeholder="搜索Wiki内容..." aria-label="Search">
+                <button type="submit" class="btn btn-primary">搜索</button>
+            </form>
+        </div>
+        
+        <!-- 快速导航按钮 -->
+        <div class="mt-4">
+            <a href="{% url 'wiki_list' %}" class="btn btn-outline-primary me-2">浏览全部</a>
+            {% if user.is_authenticated %}
+                <a href="{% url 'create_wiki' %}" class="btn btn-success me-2">创建Wiki</a>
+            {% else %}
+                <a href="{% url 'login' %}" class="btn btn-outline-secondary me-2">登录</a>
+                <a href="{% url 'register' %}" class="btn btn-outline-secondary">注册</a>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="row mt-5">
+        <!-- 最新Wiki -->
+        <div class="col-md-8">
+            <h2 class="mb-4">最新Wiki</h2>
+            
+            {% if recent_wikis %}
+                <div class="list-group">
+                    {% for wiki in recent_wikis %}
+                        <a href="{% url 'wiki_detail' slug=wiki.slug %}" class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h5 class="mb-1">{{ wiki.title }}</h5>
+                                <small>{{ wiki.updated_at|date:"Y-m-d H:i" }}</small>
+                            </div>
+                            <p class="mb-1 text-truncate">{{ wiki.content|striptags|truncatechars:150 }}</p>
+                            <small>
+                                分类: {{ wiki.category.name }}
+                                {% if wiki.tags.all %}
+                                    | 标签: 
+                                    {% for tag in wiki.tags.all %}
+                                        <span class="badge bg-secondary">{{ tag.name }}</span>
+                                    {% endfor %}
+                                {% endif %}
+                            </small>
+                        </a>
+                    {% endfor %}
+                </div>
+                
+                <div class="text-end mt-3">
+                    <a href="{% url 'wiki_list' %}" class="btn btn-outline-primary">查看更多 &raquo;</a>
+                </div>
+            {% else %}
+                <div class="alert alert-info">还没有Wiki内容。成为第一个创建内容的人吧！</div>
+            {% endif %}
+        </div>
+        
+        <!-- 侧边栏 -->
+        <div class="col-md-4">
+            <!-- 统计信息 -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    站点统计
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled">
+                        <li>Wiki页面总数: <strong>{{ stats.total_wikis }}</strong></li>
+                        <li>分类总数: <strong>{{ stats.total_categories }}</strong></li>
+                        <li>标签总数: <strong>{{ stats.total_tags }}</strong></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- 分类列表 -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    分类浏览
+                </div>
+                <div class="card-body">
+                    {% if categories %}
+                        <ul class="list-group">
+                            {% for category in categories %}
+                                <a href="{% url 'wiki_list' %}?category={{ category.slug }}" 
+                                   class="list-group-item d-flex justify-content-between align-items-center">
+                                    {{ category.name }}
+                                    <span class="badge bg-primary rounded-pill">
+                                        {{ category.wiki_set.count }}
+                                    </span>
+                                </a>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p>暂无分类</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- 热门标签 -->
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    热门标签
+                </div>
+                <div class="card-body">
+                    <div class="tag-cloud">
+                        {% for tag in popular_tags %}
+                            <a href="{% url 'wiki_list' %}?tag={{ tag.slug }}" 
+                               class="badge bg-secondary text-decoration-none me-1 mb-1">
+                                {{ tag.name }} ({{ tag.num_wikis }})
+                            </a>
+                        {% empty %}
+                            <p>暂无标签</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

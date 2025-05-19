@@ -101,8 +101,7 @@
                             <select name="to_revision" id="to_revision" class="form-select form-select-sm">
                                 {% for rev in wiki.revisions.all %}
                                 {% if rev.id != revision.id %}
-                                <option value="{{ rev.id }}" {% if rev.id> revision.id and forloop.first %}selected{%
-                                    endif %}>
+                                <option value="{{ rev.id }}" {% if rev.id > revision.id and forloop.first %}selected{% endif %}>
                                     版本 #{{ rev.id }} ({{ rev.created_at|date:"m-d H:i" }})
                                 </option>
                                 {% endif %}

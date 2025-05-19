@@ -11,7 +11,7 @@
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="{% url 'index' %}">首页</a></li>
-                    <li class="breadcrumb-item"><a href="{{ wiki.get_absolute_url }}">{{ wiki.title }}</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'wiki_detail' slug=wiki.slug %}">{{ wiki.title }}</a></li>
                     <li class="breadcrumb-item active">编辑</li>
                 </ol>
             </nav>
@@ -78,7 +78,7 @@
 
                         <!-- 提交按钮 -->
                         <div class="d-flex justify-content-between">
-                            <a href="{{ wiki.get_absolute_url }}" class="btn btn-secondary">取消</a>
+                            <a href="{% url 'wiki_detail' slug=wiki.slug %}" class="btn btn-secondary">取消</a>
                             <button type="submit" class="btn btn-primary">保存更改</button>
                         </div>
                     </form>

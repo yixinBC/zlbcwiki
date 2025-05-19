@@ -1,4 +1,5 @@
 from diff_match_patch import diff_match_patch
+from django import forms
 from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
@@ -19,10 +20,43 @@ class WikiForm(ModelForm):
     class Meta:
         model = Wiki
         fields = ["title", "slug", "content", "category", "tags"]
+        widgets = {
+            'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '输入Wiki标题'}),
+            'slug': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '输入URL别名'}),
+            'content': forms.Textarea(attrs={'class': 'form-control', 'rows': 15}),
+            'category': forms.Select(attrs={'class': 'form-select'}),
+            'tags': forms.SelectMultiple(attrs={'class': 'form-select', 'size': '5'}),
+        }
+
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            # Add empty label for category field
+            self.fields['category'].empty_label = "请选择分类"
+            
+            # Check if categories exist, if not, add a warning
+            if not WikiCategory.objects.exists():
+                self.fields['category'].help_text = "请先创建至少一个分类"
+                
+            # Check if tags exist, if not, add a warning
+            if not WikiTag.objects.exists():
+                self.fields['tags'].help_text = "请先创建至少一个标签"
 
 
 def index(request):
-    return HttpResponse("Hello, world. You're at the wiki index.")
+    recent_wikis = Wiki.objects.all().order_by("-updated_at")[:10]  # 获取最近更新的几个Wiki
+    categories = WikiCategory.objects.all()  # 获取所有分类
+    popular_tags = WikiTag.objects.all()
+    stats = {
+        "total_wikis": Wiki.objects.count(),
+        "total_categories": WikiCategory.objects.count(),
+        "total_tags": WikiTag.objects.count(),
+    }
+    return render(request, "wiki/index.html", {
+        "recent_wikis": recent_wikis,
+        "categories": categories,
+        "popular_tags": popular_tags,
+        "stats": stats,
+    })
 
 
 def register(request):
@@ -154,7 +188,7 @@ def edit_wiki(request, wiki_id):
 
         # 保存新版本
         wiki.save_revision(request.user, new_content, description)
-        return redirect("wiki_detail", wiki_id=wiki.id)
+        return redirect("wiki_detail", slug=wiki.slug)
 
     return render(request, "wiki/edit.html", {"wiki": wiki})
 
