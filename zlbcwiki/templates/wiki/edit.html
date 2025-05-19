@@ -4,6 +4,11 @@
 {% block title %}编辑 {{ wiki.title }} - ZLBC Wiki{% endblock %}
 
 {% block content %}
+<!-- Bootstrap icons -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+<!-- Markdown 处理库 -->
+<script src="https://cdn.jsdelivr.net/npm/marked@4.0.2/marked.min.js"></script>
+<!-- 将 JavaScript 函数定义移到头部 -->
 <div class="container">
     <div class="row mb-4">
         <div class="col">
@@ -11,7 +16,8 @@
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="{% url 'index' %}">首页</a></li>
-                    <li class="breadcrumb-item"><a href="{% url 'wiki_detail' slug=wiki.slug %}">{{ wiki.title }}</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'wiki_detail' slug=wiki.slug %}">{{ wiki.title }}</a>
+                    </li>
                     <li class="breadcrumb-item active">编辑</li>
                 </ol>
             </nav>
@@ -153,19 +159,11 @@
         </div>
     </div>
 </div>
-
-{% endblock %}
-
-{% block extra_js %}
-<!-- Bootstrap icons -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-<!-- Markdown 处理库 -->
-<script src="https://cdn.jsdelivr.net/npm/marked@4.0.2/marked.min.js"></script>
-
 <script>
-    // 插入 Markdown 标记到光标位置
     function insertMarkdown(before, after) {
         const textarea = document.getElementById('content');
+        if (!textarea) return; // 防止在 DOM 加载之前调用
+
         const start = textarea.selectionStart;
         const end = textarea.selectionEnd;
         const text = textarea.value;
@@ -179,29 +177,31 @@
         textarea.setSelectionRange(newCursorPos, newCursorPos);
     }
 
-    // 显示图片上传模态框
     function showImageUploadModal() {
-        const modal = new bootstrap.Modal(document.getElementById('imageUploadModal'));
-        modal.show();
+        // 将在 DOMContentLoaded 之后执行
+        document.addEventListener('DOMContentLoaded', () => {
+            const modal = new bootstrap.Modal(document.getElementById('imageUploadModal'));
+            modal.show();
+        });
     }
 
-    // 切换 Markdown 预览
     function togglePreview() {
-        const textarea = document.getElementById('content');
-        const preview = document.getElementById('markdown-preview');
+        document.addEventListener('DOMContentLoaded', () => {
+            const textarea = document.getElementById('content');
+            const preview = document.getElementById('markdown-preview');
 
-        if (preview.classList.contains('d-none')) {
-            // 显示预览
-            preview.innerHTML = marked.parse(textarea.value);
-            preview.classList.remove('d-none');
-            textarea.classList.add('d-none');
-        } else {
-            // 隐藏预览
-            preview.classList.add('d-none');
-            textarea.classList.remove('d-none');
-        }
+            if (preview.classList.contains('d-none')) {
+                // 显示预览
+                preview.innerHTML = marked.parse(textarea.value);
+                preview.classList.remove('d-none');
+                textarea.classList.add('d-none');
+            } else {
+                // 隐藏预览
+                preview.classList.add('d-none');
+                textarea.classList.remove('d-none');
+            }
+        });
     }
-
     // 处理图片上传
     document.getElementById('upload-image-btn').addEventListener('click', function () {
         const form = document.getElementById('image-upload-form');

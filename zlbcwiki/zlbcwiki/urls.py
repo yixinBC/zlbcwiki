@@ -32,6 +32,7 @@ urlpatterns = [
     path("wiki/<slug:slug>/", wiki_views.wiki_detail, name="wiki_detail"),
     path("wiki/<int:wiki_id>/comment/", wiki_views.add_comment, name="add_comment"),
     path("wiki/<int:wiki_id>/edit/", wiki_views.edit_wiki, name="edit_wiki"),
+    path("wiki/<int:wiki_id>/delete/", wiki_views.delete_wiki, name="delete_wiki"),
     path(
         "wiki/<int:wiki_id>/history/", wiki_views.view_wiki_history, name="wiki_history"
     ),
@@ -45,6 +46,7 @@ urlpatterns = [
         wiki_views.wiki_compare_revisions,
         name="wiki_compare",
     ),
+    path("wiki/upload-image/", wiki_views.upload_wiki_image, name="wiki_upload_image"),
 ]
 
 if settings.DEBUG:

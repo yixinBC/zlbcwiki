@@ -7,7 +7,7 @@ from django.contrib.auth.forms import UserCreationForm
 from django.core.paginator import Paginator
 from django.db import models
 from django.forms import ModelForm
-from django.http import HttpResponse, JsonResponse
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
 from .models import Wiki, WikiImage, WikiPermission, WikiTag, WikiCategory, WikiComment
@@ -21,29 +21,35 @@ class WikiForm(ModelForm):
         model = Wiki
         fields = ["title", "slug", "content", "category", "tags"]
         widgets = {
-            'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '输入Wiki标题'}),
-            'slug': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '输入URL别名'}),
-            'content': forms.Textarea(attrs={'class': 'form-control', 'rows': 15}),
-            'category': forms.Select(attrs={'class': 'form-select'}),
-            'tags': forms.SelectMultiple(attrs={'class': 'form-select', 'size': '5'}),
+            "title": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "输入Wiki标题"}
+            ),
+            "slug": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "输入URL别名"}
+            ),
+            "content": forms.Textarea(attrs={"class": "form-control", "rows": 15}),
+            "category": forms.Select(attrs={"class": "form-select"}),
+            "tags": forms.SelectMultiple(attrs={"class": "form-select", "size": "5"}),
         }
 
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
             # Add empty label for category field
-            self.fields['category'].empty_label = "请选择分类"
-            
+            self.fields["category"].empty_label = "请选择分类"
+
             # Check if categories exist, if not, add a warning
             if not WikiCategory.objects.exists():
-                self.fields['category'].help_text = "请先创建至少一个分类"
-                
+                self.fields["category"].help_text = "请先创建至少一个分类"
+
             # Check if tags exist, if not, add a warning
             if not WikiTag.objects.exists():
-                self.fields['tags'].help_text = "请先创建至少一个标签"
+                self.fields["tags"].help_text = "请先创建至少一个标签"
 
 
 def index(request):
-    recent_wikis = Wiki.objects.all().order_by("-updated_at")[:10]  # 获取最近更新的几个Wiki
+    recent_wikis = Wiki.objects.all().order_by("-updated_at")[
+        :10
+    ]  # 获取最近更新的几个Wiki
     categories = WikiCategory.objects.all()  # 获取所有分类
     popular_tags = WikiTag.objects.all()
     stats = {
@@ -51,12 +57,16 @@ def index(request):
         "total_categories": WikiCategory.objects.count(),
         "total_tags": WikiTag.objects.count(),
     }
-    return render(request, "wiki/index.html", {
-        "recent_wikis": recent_wikis,
-        "categories": categories,
-        "popular_tags": popular_tags,
-        "stats": stats,
-    })
+    return render(
+        request,
+        "wiki/index.html",
+        {
+            "recent_wikis": recent_wikis,
+            "categories": categories,
+            "popular_tags": popular_tags,
+            "stats": stats,
+        },
+    )
 
 
 def register(request):
@@ -191,6 +201,36 @@ def edit_wiki(request, wiki_id):
         return redirect("wiki_detail", slug=wiki.slug)
 
     return render(request, "wiki/edit.html", {"wiki": wiki})
+
+
+@login_required
+def delete_wiki(request, wiki_id):
+    """删除 Wiki 页面"""
+    wiki = get_object_or_404(Wiki, id=wiki_id)
+
+    # 检查权限：只有创建者、超级用户或有管理权限的用户可以删除
+    if not (
+        request.user.is_superuser
+        or wiki.creator == request.user
+        or WikiPermission.objects.filter(
+            wiki=wiki, user=request.user, permission="admin"
+        ).exists()
+    ):
+        messages.error(request, "您没有权限删除此 Wiki 页面")
+        return redirect("wiki_detail", slug=wiki.slug)
+
+    if request.method == "POST":
+        # 获取相关数据以便在删除后使用
+        title = wiki.title
+
+        # 先删除与该 Wiki 相关的所有数据
+        wiki.delete()
+
+        messages.success(request, f"Wiki '{title}' 已成功删除")
+        return redirect("wiki_list")  # 删除后重定向到 Wiki 列表
+
+    # GET 请求显示确认页面
+    return render(request, "wiki/delete_confirm.html", {"wiki": wiki})
 
 
 @login_required

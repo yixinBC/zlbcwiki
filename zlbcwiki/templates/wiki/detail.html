@@ -49,6 +49,9 @@
                         <a href="{% url 'edit_wiki' wiki_id=wiki.id %}" class="btn btn-outline-primary">
                             <i class="bi bi-pencil"></i> 编辑
                         </a>
+                        <a href="{% url 'delete_wiki' wiki_id=wiki.id %}" class="btn btn-outline-danger">
+                            <i class="bi bi-trash"></i> 删除
+                        </a>
                         {% endif %}
                     </div>
                 </div>
