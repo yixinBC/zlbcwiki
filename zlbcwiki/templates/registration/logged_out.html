@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container py-5">
+    <div class="alert alert-info text-center">
+        <h4>您已成功退出登录。</h4>
+        <a href="{% url 'login' %}" class="btn btn-primary mt-3">重新登录</a>
+        <a href="{% url 'index' %}" class="btn btn-secondary mt-3">返回首页</a>
+    </div>
+</div>
+{% endblock %}
