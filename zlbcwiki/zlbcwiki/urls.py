@@ -16,6 +16,7 @@ Including another URLconf
 """
 
 from django.contrib import admin
+from django.contrib.auth import views as auth_views
 from django.urls import include, path
 from wiki import views as wiki_views
 from django.conf import settings
@@ -26,6 +27,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("accounts/", include("django.contrib.auth.urls")),
     path("accounts/register/", wiki_views.register, name="register"),
+    path("accounts/logout/", auth_views.LogoutView.as_view(), name="logout"),
     path("", wiki_views.index, name="index"),
     path("wiki/", wiki_views.wiki_list, name="wiki_list"),
     path("wiki/create/", wiki_views.create_wiki, name="create_wiki"),
